@@ -16,6 +16,20 @@ import fragmentAround from './shader/around/fragment.glsl'
 // Debug
 const gui = new dat.GUI()
 
+const params = {
+    timeScale: 0.005,
+    am: .9,
+    fm: 2.,
+    offset: 100,
+    itr: 6
+}
+
+gui.add(params, 'timeScale').min(0).max(2).step(0.001).name('时间频率').onChange(()=>sun.material.uniforms.uTimeScale.value = params.timeScale)
+gui.add(params, 'am').min(0).max(2).step(0.001).name('调幅倍率').onChange(()=>perlin.material.uniforms.uAm.value = params.am)
+gui.add(params, 'fm').min(0).max(10).step(0.01).name('调频倍率').onChange(()=>perlin.material.uniforms.uFm.value = params.fm)
+gui.add(params, 'offset').min(0).max(1000).step(0.1).name('时间偏移').onChange(()=>perlin.material.uniforms.uOffset.value = params.offset)
+gui.add(params, 'itr').min(1).max(10).step(1).name('叠加次数').onChange(()=>perlin.material.uniforms.uItr.value = params.itr)
+
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
 
@@ -52,7 +66,11 @@ const initTex = () => {
         fragmentShader: textureFragment,
         side: THREE.DoubleSide,
         uniforms: {
-            uTime: { value: 0 }
+            uTime: { value: 0 },
+            uAm: { value: params.am },
+            uFm: { value: params.fm },
+            uOffset:{value:params.offset},
+            uItr: { value: params.itr }
         },
     })
     const mesh = new THREE.Mesh(textureGeometry, shaderTextureMaterial)
@@ -69,6 +87,7 @@ const initSun = () => {
         fragmentShader: fragmentSun,
         uniforms: {
             uTime: { value: 0 },
+            uTimeScale:{value:0},
             uPerlin: { value: null }
         },
     })
@@ -160,7 +179,7 @@ renderer.outputColorSpace = THREE.SRGBColorSpace
 const clock = new THREE.Clock()
 
 
-console.log('perlin.material',perlin.material);
+console.log('perlin.material', perlin.material)
 
 const tick = () => {
     // mesh.lookAt(camera.position)

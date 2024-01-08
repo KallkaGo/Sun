@@ -1,17 +1,22 @@
 #include "/node_modules/lygia/generative/snoise.glsl"
 varying vec2 vUv;
 uniform float uTime;
+uniform float uAm;
+uniform float uFm;
+uniform float uOffset;
+uniform int uItr;
+
 varying vec3 vPosition;
 
 float fbm(vec4 p) {
   float sum = 0.;
   float amp = 1.;
   float scale = 1.;
-  for(int i = 0; i < 6; i++) {
+  for(int i = 0; i < uItr; i++) {
     sum += snoise(p * scale) * amp;
-    amp *= .9;
-    scale *= 2.;
-    p.w += 100.;
+    amp *= uAm;
+    scale *= uFm;
+    p.w += uOffset;
   }
   return sum;
 }
@@ -23,6 +28,6 @@ void main() {
   float noisy = fbm(p);
   // noisy = fbm(vec4(vUv,0.,uTime*.01));
   gl_FragColor = vec4(vec3(noisy), 1.);
-  gl_FragColor.xyz *= mix(1.,light,.7);
+  gl_FragColor.xyz *= mix(1., light, .7);
 
 }

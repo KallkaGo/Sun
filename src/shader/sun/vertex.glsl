@@ -9,6 +9,7 @@ varying vec3 dir;
 varying vec3 vNormal;
 
 uniform float uTime;
+uniform float uTimeScale;
 
 mat2 rotate(float a) {
   float s = sin(a);
@@ -19,7 +20,7 @@ mat2 rotate(float a) {
 void main() {
 
   vNormal = (modelMatrix * vec4(normal, 0.)).xyz;
-  float t = uTime * 0.005;
+  float t = uTime * uTimeScale;
   mat2 rot = rotate(t);
 
   vec3 p0 = position;
@@ -31,7 +32,7 @@ void main() {
   p1.xz = rot1 * p1.xz;
   vLayer1 = p1;
 
-  mat2 rot2 = rotate(t+ 30.);
+  mat2 rot2 = rotate(t + 30.);
   vec3 p2 = position;
   p2.xy = rot2 * p2.xy;
   vLayer2 = p2;
