@@ -160,6 +160,7 @@ const controls = new OrbitControls(camera, canvas)
 controls.enableDamping = true
 controls.zoomSpeed = 0.5
 controls.rotateSpeed = 0.1
+controls.enablePan = false
 
 /**
  * Renderer
