@@ -1,14 +1,14 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import * as dat from 'lil-gui'
-import vertexShader from './shader/vertex.glsl'
-import fragmentShader from './shader/fragment.glsl'
-import vertexShadersun from './shadersun/vertex.glsl'
-import fragmentShadersun from './shadersun/fragment.glsl'
-import vertexShaderAround from './shadersunAround/vertex.glsl'
-import fragmentShaderAround from './shadersunAround/fragment.glsl'
+import Stats from 'three/examples/jsm/libs/stats.module'
+import textureVertex from './shader/texture/vertex.glsl'
+import textureFragment from './shader/texture/fragment.glsl'
+import vertexSun from './shader/sun/vertex.glsl'
+import fragmentSun from './shader/sun/fragment.glsl'
+import vertexAround from './shader/around/vertex.glsl'
+import fragmentAround from './shader/around/fragment.glsl'
+
 
 /**
  * Base
@@ -32,72 +32,77 @@ const dirctionLight = new THREE.DirectionalLight('white', 1)
 scene.add(dirctionLight)
 
 
-/**
- * Loader
- */
-const textureLoader = new THREE.TextureLoader()
-const fbxLoader = new FBXLoader()
-const gltfLoader = new GLTFLoader()
-/**
- * Test mesh
- */
-const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(256)
-const cubeCamera = new THREE.CubeCamera(0.1, 100, cubeRenderTarget)
+const stats = new Stats()
+document.body.appendChild(stats.dom)
 
-
-// Geometry
-const aroundGeo = new THREE.SphereGeometry(1.2, 30, 30)
-
-const perlingeometry = new THREE.SphereGeometry(1, 30, 30)
-
-const sungeometry = new THREE.SphereGeometry(1, 30, 30)
-
-
-// Material
-const material = new THREE.MeshBasicMaterial()
-
-const shaderAroundMaterial = new THREE.ShaderMaterial({
-    vertexShader: vertexShaderAround,
-    fragmentShader: fragmentShaderAround,
-    side: THREE.BackSide,
-    uniforms: {
-        uTime: { value: 0 },
-        uPerlin: { value: null }
-    },
-    transparent:true
+/* 
+RenderTarget
+*/
+const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(256, {
+    colorSpace: THREE.SRGBColorSpace
 })
-
-const shaderSunMaterial = new THREE.ShaderMaterial({
-    vertexShader: vertexShadersun,
-    fragmentShader: fragmentShadersun,
-    side: THREE.DoubleSide,
-    uniforms: {
-        uTime: { value: 0 },
-        uPerlin: { value: null }
-    },
-})
-
-const shaderPerlinMaterial = new THREE.ShaderMaterial({
-    vertexShader,
-    fragmentShader,
-    side: THREE.DoubleSide,
-    uniforms: {
-        uTime: { value: 0 }
-    },
-    // transparent:true
-})
-
-const perlin = new THREE.Mesh(perlingeometry, shaderPerlinMaterial)
-scene1.add(perlin)
-
-// Mesh
-const mesh = new THREE.Mesh(sungeometry, shaderSunMaterial)
-scene.add(mesh)
+const cubeCamera = new THREE.CubeCamera(0.1, 10, cubeRenderTarget)
 
 
-const around = new THREE.Mesh(aroundGeo, shaderAroundMaterial)
+// texture Mesh
+const initTex = () => {
+    const textureGeometry = new THREE.SphereGeometry(1, 30, 30)
+    const shaderTextureMaterial = new THREE.ShaderMaterial({
+        vertexShader: textureVertex,
+        fragmentShader: textureFragment,
+        side: THREE.DoubleSide,
+        uniforms: {
+            uTime: { value: 0 }
+        },
+    })
+    const mesh = new THREE.Mesh(textureGeometry, shaderTextureMaterial)
+    scene1.add(mesh)
+    return mesh
+}
 
-scene.add(around)
+
+// create Sun
+const initSun = () => {
+    const sungeometry = new THREE.SphereGeometry(1, 30, 30)
+    const shaderSunMaterial = new THREE.ShaderMaterial({
+        vertexShader: vertexSun,
+        fragmentShader: fragmentSun,
+        uniforms: {
+            uTime: { value: 0 },
+            uPerlin: { value: null }
+        },
+    })
+    const mesh = new THREE.Mesh(sungeometry, shaderSunMaterial)
+    scene.add(mesh)
+
+    return mesh
+}
+
+// create Around
+
+const initAround = () => {
+    const aroundGeo = new THREE.SphereGeometry(1.1, 30, 30)
+    const shaderAroundMaterial = new THREE.ShaderMaterial({
+        vertexShader: vertexAround,
+        fragmentShader: fragmentAround,
+        side: THREE.BackSide,
+        uniforms: {
+            uTime: { value: 0 },
+        },
+        transparent: true
+    })
+    const around = new THREE.Mesh(aroundGeo, shaderAroundMaterial)
+    scene.add(around)
+
+    return around
+}
+
+
+const perlin = initTex()
+const sun = initSun()
+const around = initAround()
+
+
 /**
  * Sizes
  */
@@ -118,19 +123,24 @@ window.addEventListener('resize', () => {
     // Update renderer
     renderer.setSize(sizes.width, sizes.height)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+    sun.scale.setScalar(sizes.width / sizes.height)
+    around.scale.setScalar(sizes.width / sizes.height)
 })
 
 /**
  * Camera
  */
 // Base camera
-const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.set(0, 0, 2)
+const camera = new THREE.PerspectiveCamera(45, sizes.width / sizes.height, 0.1, 100)
+camera.position.set(0, 0, 5)
 scene.add(camera)
 
 // Controls
 const controls = new OrbitControls(camera, canvas)
 controls.enableDamping = true
+controls.zoomSpeed = 0.5
+controls.rotateSpeed = 0.1
 
 /**
  * Renderer
@@ -149,19 +159,24 @@ renderer.outputColorSpace = THREE.SRGBColorSpace
  */
 const clock = new THREE.Clock()
 
+
+console.log('perlin.material',perlin.material);
+
 const tick = () => {
     // mesh.lookAt(camera.position)
 
-    around.lookAt(camera.position)
+    stats.update()
 
     const elapsedTime = clock.getElapsedTime()
 
     cubeCamera.update(renderer, scene1)
 
-    shaderSunMaterial.uniforms.uPerlin.value = cubeRenderTarget.texture
+    perlin.material.uniforms.uTime.value = elapsedTime
+    sun.material.uniforms.uPerlin.value = cubeRenderTarget.texture
+    sun.material.uniforms.uTime.value = elapsedTime
 
-    shaderSunMaterial.uniforms.uTime.value = elapsedTime
-    shaderPerlinMaterial.uniforms.uTime.value = elapsedTime
+    around.lookAt(camera.position)
+
     // Update controls
     controls.update()
 

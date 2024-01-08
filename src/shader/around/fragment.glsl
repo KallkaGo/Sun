@@ -12,11 +12,11 @@ void main() {
 
   radial = pow(radial, 3.);
 
-  float birghtness = 1. + radial * .83;
+  float birghtness = 1. + radial * .13;
 
-  gl_FragColor.rgb = brightnessToColor(birghtness);
+  gl_FragColor.rgb = brightnessToColor(birghtness)*radial;
 
-  gl_FragColor.a = radial;
+  gl_FragColor.a = radial*.5;
 
 
 }

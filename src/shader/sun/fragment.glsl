@@ -22,7 +22,7 @@ vec3 brightnessToColor(float b) {
 }
 
 float fresnel(vec3 dir, vec3 worldNormal) {
-  return pow(1. - clamp(dot(dir, worldNormal), 0., 1.), 3.);
+  return pow(1. - clamp(dot(dir, worldNormal), 0., 1.), 5.);
 }
 
 void main() {

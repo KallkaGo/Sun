@@ -31,7 +31,7 @@ void main() {
   p1.xz = rot1 * p1.xz;
   vLayer1 = p1;
 
-  mat2 rot2 = rotate(t + 30.);
+  mat2 rot2 = rotate(t+ 30.);
   vec3 p2 = position;
   p2.xy = rot2 * p2.xy;
   vLayer2 = p2;
@@ -42,7 +42,7 @@ void main() {
 
   vec4 viewPosition = viewMatrix * modelPosition;
   vec4 projectedPosition = projectionMatrix * viewPosition;
-  vPosition = position;
+  vPosition = modelPosition.xyz;
   vUv = uv;
   gl_Position = projectedPosition;
 }
